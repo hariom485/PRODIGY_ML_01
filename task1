@@ -1,0 +1,81 @@
+#include <iostream>
+#include <vector>
+#include <cmath>
+
+// Function to perform linear regression
+void linearRegression(const std::vector<std::vector<double>>& X, const std::vector<double>& y, std::vector<double>& coefficients) {
+    int n = X.size(); // Number of samples
+    int m = X[0].size(); // Number of features
+    
+    // Initialize variables for the normal equation
+    std::vector<std::vector<double>> X_transpose(m, std::vector<double>(n));
+    std::vector<std::vector<double>> X_transpose_X(m, std::vector<double>(m));
+    std::vector<double> X_transpose_y(m);
+    
+    // Calculate X_transpose
+    for (int i = 0; i < m; ++i) {
+        for (int j = 0; j < n; ++j) {
+            X_transpose[i][j] = X[j][i];
+        }
+    }
+    
+    // Calculate X_transpose_X
+    for (int i = 0; i < m; ++i) {
+        for (int j = 0; j < m; ++j) {
+            double sum = 0.0;
+            for (int k = 0; k < n; ++k) {
+                sum += X_transpose[i][k] * X[k][j];
+            }
+            X_transpose_X[i][j] = sum;
+        }
+    }
+    
+    // Calculate X_transpose_y
+    for (int i = 0; i < m; ++i) {
+        double sum = 0.0;
+        for (int j = 0; j < n; ++j) {
+            sum += X_transpose[i][j] * y[j];
+        }
+        X_transpose_y[i] = sum;
+    }
+    
+    // Solve the normal equation (X^T * X) * coefficients = X^T * y
+    // Use Gaussian Elimination, or other methods like Singular Value Decomposition (SVD) for more stability
+    
+    // Here, I'm just using simple 2x2 matrix inversion as an example
+    double det = X_transpose_X[0][0] * X_transpose_X[1][1] - X_transpose_X[0][1] * X_transpose_X[1][0];
+    coefficients[0] = (X_transpose_X[1][1] * X_transpose_y[0] - X_transpose_X[0][1] * X_transpose_y[1]) / det;
+    coefficients[1] = (X_transpose_X[0][0] * X_transpose_y[1] - X_transpose_X[1][0] * X_transpose_y[0]) / det;
+}
+
+// Function to predict house prices
+double predictPrice(const std::vector<double>& coefficients, const std::vector<double>& features) {
+    double price = coefficients[0]; // Intercept
+    for (size_t i = 0; i < features.size(); ++i) {
+        price += coefficients[i + 1] * features[i]; // Coefficients for features
+    }
+    return price;
+}
+
+int main() {
+    // Sample dataset
+    std::vector<std::vector<double>> X = {{2000, 3, 2}, {1500, 2, 1}, {2500, 4, 3}}; // Features (square footage, bedrooms, bathrooms)
+    std::vector<double> y = {300000, 200000, 400000}; // Target variable (prices)
+    
+    // Perform linear regression
+    std::vector<double> coefficients(X[0].size() + 1);
+    linearRegression(X, y, coefficients);
+    
+    // Print coefficients
+    std::cout << "Intercept: " << coefficients[0] << std::endl;
+    for (size_t i = 0; i < X[0].size(); ++i) {
+        std::cout << "Coefficient " << i + 1 << ": " << coefficients[i + 1] << std::endl;
+    }
+    
+    // Predict price for a new house
+    std::vector<double> new_house = {1800, 3, 2}; // New house features
+    double predicted_price = predictPrice(coefficients, new_house);
+    std::cout << "Predicted price for the new house: " << predicted_price << std::endl;
+    
+    return 0;
+}
